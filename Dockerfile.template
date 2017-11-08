@@ -1,0 +1,42 @@
+
+# base-image for node on any machine using a template variable,
+# see more about dockerfile templates here:http://docs.resin.io/pages/deployment/docker-templates
+# Note the node:slim image doesn't have node-gyp
+FROM resin/%%RESIN_MACHINE_NAME%%-python:3
+
+apt-get update && apt-get install -yq --no-install-recommends \
+  alsa-utils \
+  python3-all-dev \
+  python3-pip \
+  python3-numpy \
+  python3-rpi.gpio
+  python3-pysocks \
+  virtualenv \
+  rsync \
+  libttspico-utils \
+  ntpdate && pip3 install --upgrade pip virtualenv && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Configure ALSA
+COPY ./Dockerbin/asound.conf /etc/asound.conf
+
+# Move to app dir
+WORKDIR /usr/src/app
+
+# Install Google Assistant library
+RUN virtualenv --system-site-packages -p python3 env && \
+  env/bin/pip install -r requirements.txt && \
+  env/bin/pip install google-assistant-library==0.0.3
+
+# Install systemd services
+COPY ./Dockerbin/alsa-init.conf /lib/systemd/system/
+COPY ./Dockerbin/voice-recognizer.conf /lib/systemd/system/
+RUN systemctl disable alsa-init.service && systemctl disable ntpdate.service
+
+# Move app to filesystem
+COPY ./app ./
+
+## Uncomment if you want systemd
+ENV INITSYSTEM on
+
+# Start app
+CMD ["bash", "/usr/src/app/start.sh"]
