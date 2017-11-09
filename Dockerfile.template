@@ -30,7 +30,7 @@ RUN virtualenv --system-site-packages -p python env && \
 # Install systemd services
 COPY ./Dockerbin/alsa-init.conf /lib/systemd/system/
 COPY ./Dockerbin/voice-recognizer.conf /lib/systemd/system/
-RUN systemctl disable alsa-init.service && systemctl disable ntpdate.service
+RUN systemctl disable alsa-init.service && systemctl disable voice-recognizer.service
 
 ## Uncomment if you want systemd
 ENV INITSYSTEM on
