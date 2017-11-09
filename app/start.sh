@@ -16,5 +16,4 @@ sed -i -e "s/PROJECT_ID/$PROJECT_ID/g" assistant.json
 
 # Start systemd services now that we have configured assistant Client Credentials
 systemctl enable alsa-init.service
-systemctl enable ntpdate.service
 systemctl enable voice-recognizer.service

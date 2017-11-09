@@ -1,6 +1,6 @@
 {
   "installed": {
-    "client_id": "CLIENT_ID.apps.googleusercontent.com",
+    "client_id": "CLIENT_ID",
     "project_id": "PROJECT_ID",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://accounts.google.com/o/oauth2/token",
