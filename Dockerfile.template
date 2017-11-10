@@ -1,20 +1,21 @@
 # base-image for node on any machine using a template variable,
 # see more about dockerfile templates here:http://docs.resin.io/pages/deployment/docker-templates
 # Note the node:slim image doesn't have node-gyp
-FROM resin/%%RESIN_MACHINE_NAME%%-python:2.7
+FROM resin/%%RESIN_MACHINE_NAME%%-debian:stretch
 
 RUN apt-get update && apt-get install -yq --no-install-recommends \
+  python3 \
+  python3-pip \
+  python-dev \
   alsa-utils \
-  python-numpy \
-  python-rpi.gpio \
-  python-pysocks \
-  virtualenv \
+  python3-setuptools \
   rsync \
-  libttspico-utils \
-  ntpdate && pip install --upgrade pip virtualenv && apt-get clean && rm -rf /var/lib/apt/lists/*
+  ntpdate && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN cp `which uname` /bin/uname-orig && echo '#!/bin/bash\nif [[ $1 == "-m" ]]; then echo "armv7l"; else /bin/uname-orig $@; fi;' > `which uname`
 
 # Configure ALSA
-COPY ./Dockerbin/asound.conf /etc/asound.conf
+COPY Dockerbin/asound.conf /etc/asound.conf
 
 # Move to app dir
 WORKDIR /usr/src/app
@@ -22,14 +23,16 @@ WORKDIR /usr/src/app
 # Move app to filesystem
 COPY ./app ./
 
+COPY pip.conf /etc/pip.conf
+
 # Install Google Assistant library
-RUN virtualenv --system-site-packages -p python env && \
-  pip install -r requirements.txt && \
-  pip install --upgrade google-assistant-library
+#RUN virtualenv --system-site-packages -p python env && \
+RUN pip3 install -r requirements.txt && \
+  pip3 install --upgrade google-assistant-library
 
 # Install systemd services
-COPY ./Dockerbin/alsa-init.conf /lib/systemd/system/
-COPY ./Dockerbin/voice-recognizer.conf /lib/systemd/system/
+COPY ./Dockerbin/alsa-init.service /lib/systemd/system/
+COPY ./Dockerbin/voice-recognizer.service /lib/systemd/system/
 RUN systemctl disable alsa-init.service && systemctl disable voice-recognizer.service
 
 ## Uncomment if you want systemd
