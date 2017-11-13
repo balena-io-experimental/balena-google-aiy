@@ -10,12 +10,15 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
   alsa-utils \
   python3-setuptools \
   rsync \
-  ntpdate && apt-get clean && rm -rf /var/lib/apt/lists/*
+  git && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN cp `which uname` /bin/uname-orig && echo '#!/bin/bash\nif [[ $1 == "-m" ]]; then echo "armv7l"; else /bin/uname-orig $@; fi;' > `which uname`
 
 # Configure ALSA
 COPY Dockerbin/asound.conf /etc/asound.conf
+
+# Assistant config template
+COPY Dockerbin/assistant.json /root/assistant.json
 
 # Move to app dir
 WORKDIR /usr/src/app
@@ -23,17 +26,18 @@ WORKDIR /usr/src/app
 # Move app to filesystem
 COPY ./app ./
 
+# Pull in assistant scripts
+RUN git clone git clone https://github.com/google/aiyprojects-raspbian.git && mv aiyprojects-raspbian/src/* . && rm -rf aiyprojects-raspbian
+
 COPY pip.conf /etc/pip.conf
 
 # Install Google Assistant library
-#RUN virtualenv --system-site-packages -p python env && \
 RUN pip3 install -r requirements.txt && \
   pip3 install --upgrade google-assistant-library
 
 # Install systemd services
 COPY ./Dockerbin/alsa-init.service /lib/systemd/system/
-COPY ./Dockerbin/voice-recognizer.service /lib/systemd/system/
-RUN systemctl disable alsa-init.service && systemctl disable voice-recognizer.service
+RUN systemctl enable alsa-init.service
 
 ## Uncomment if you want systemd
 ENV INITSYSTEM on

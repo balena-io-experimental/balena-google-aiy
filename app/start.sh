@@ -10,10 +10,9 @@ modprobe i2c-dev || true
 
 # Configure assistant Client Credentials via ENV vars
 
-sed -i -e "s/CLIENT_ID/$CLIENT_ID/g" assistant.json
-sed -i -e "s/CLIENT_SECRET/$CLIENT_SECRET/g" assistant.json
-sed -i -e "s/PROJECT_ID/$PROJECT_ID/g" assistant.json
+sed -i -e "s/CLIENT_ID/$CLIENT_ID/g" /root/assistant.json
+sed -i -e "s/CLIENT_SECRET/$CLIENT_SECRET/g" /root/assistant.json
+sed -i -e "s/PROJECT_ID/$PROJECT_ID/g" /root/assistant.json
 
-# Start systemd services now that we have configured assistant Client Credentials
-systemctl enable alsa-init.service
-systemctl enable voice-recognizer.service
+# Start app
+python3 assistant_library_with_button_demo.py
